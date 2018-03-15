@@ -4,9 +4,9 @@ from urllib.request import urlopen
 import json
 
 url = ['https://api.douban.com/v2/book/']
-status = {'title':1, 'origin_title':1,'alt_title':1, 'subtitle': '','tags':1,  'author':1, 'author_intro':1, 'summary':1, 'rating':1, 'ebook_url':1,
-          'translator':1, "pubdate":1, "publisher":1, 'price':1, 'binding':1, 'ebook_price':1,'catalog':1,'pages':1, "isbn10":1, "isbn13":1} 
-
+status = {} 
+list = ['title', 'origin_title','alt_title', 'subtitle','tags',  'author', 'author_intro', 'summary', 'rating', 'ebook_url',
+          'translator', "pubdate", "publisher", 'price', 'binding', 'ebook_price','catalog','pages', "isbn10", "isbn13"]
 def GetNmuber():
     inpu = input('输入图书编码：')
     try:
@@ -25,31 +25,36 @@ def GetUrl(url):
     except:
         print('未找到书目，请输入正确的图书编码')
         return
-    return OutPutInfo(html)
+    return SaveInfo(html)
     
 
-def OutPutInfo(html):
+def SaveInfo(html):
     hjson = json.loads(html.read().decode('utf-8'))
-    for info in status:
+    for info in list:
         try:
             status[info]= hjson[info]
-            if len(status[info])==0:
-                pass
-            elif info == 'summary' or info =='author_intro':
-                print(info,':\n',status[info])
-            elif info == 'author' or info =='translator':
-                print(info,':',status[info][0])
-            elif info == 'tags':
-                print("tags:")
-                for i in status[info]:
-                    print (i['name'],end=" ")
-                print(' ')
-            elif info =='rating':
-                print('rating:',hjson['rating'] ['average'])
-            else:
-                print(info,':',status[info])
         except:
             pass
+    return OutputInfo()
+
+def OutputInfo():
+    for info in list:
+        if not status.get(info):
+            pass
+        elif info == 'summary' or info =='author_intro':
+            print(info,':\n',status[info])
+        elif info == 'rating':
+            print(info,':',status[info]['average'])
+        elif info =='author' or info == 'translator':
+            for i in status[info]:
+                print(info,':',i)
+        elif info =='tags':
+            print('tags:')
+            for i in status[info]:
+                print (i['name'],end=' ')
+            print(' ')
+        else:
+            print(info,':',status[info])
 
 
 GetNmuber()
