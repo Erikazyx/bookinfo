@@ -10,16 +10,12 @@ D = {'title':'书名','origin_title':'原始书名','alt_title':'别名', 'subti
 
 def GetNmuber():
     _input = input('输入图书编码：')
-    try:
-        number = int(_input)
-    except:
-        print("请输入正确的只包含数字的图书编码。")
-        return 
+    assert _input.isdigit() , '请输入正确的只包含数字的图书编码'
     return GetUrl(_input)
 
 def GetUrl(_input):
     html = requests.get(url.format(_input))
-    assert html.status_code == 200 ,'http error code{}'.format(html.status_code)
+    assert html.status_code == 200 ,'http error : code {}'.format(html.status_code)
     hjson = html.json()
     assert 'code' not in hjson,hjson.get('msg','api error,try again later')
     OutputInfo(hjson)
