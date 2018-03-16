@@ -1,55 +1,47 @@
 #-*-coding:utf-8-*-
 import requests
 
-url = ['https://api.douban.com/v2/book/']
-status = {} 
-list = ['title', 'origin_title','alt_title', 'subtitle','tags',  'author', 'author_intro', 'summary', 'rating', 'ebook_url',
+url = 'https://api.douban.com/v2/book/{}'
+MAX_LEN = 140 
+Sorts = ['title', 'origin_title','alt_title', 'subtitle','tags',  'author', 'author_intro', 'summary', 'rating', 'ebook_url',
           'translator', "pubdate", "publisher", 'price', 'binding', 'ebook_price','catalog','pages', "isbn10", "isbn13"]
+D = {'title':'书名','origin_title':'原始书名','alt_title':'别名', 'subtitle':'副标题','tags':'标签',  'author':'作者', 'author_intro':'作者介绍', 'summary':'摘要', 'rating':'评分', 'ebook_url':'电子书地址',
+     'translator':'翻译者', "pubdate":'出版日期', "publisher":'出版社', 'price':'价格', 'binding':'装订', 'ebook_price':'电子书价格','catalog':'目录','pages':'页数', "isbn10":'ISBN10', "isbn13":'ISBN13'}
 
 def GetNmuber():
     _input = input('输入图书编码：')
     try:
         number = int(_input)
-    except ValueError as e:
+    except:
         print("请输入正确的只包含数字的图书编码。")
         return 
-    url.append(_input)
-    return GetUrl(url)
+    return GetUrl(_input)
 
-def GetUrl(url):
-    web = ''.join(url)
-    html = requests.get(web)
-    if html.status_code == 404:
-        print('未找到书目，请输入正确的图书编码')
-        return
-    SaveInfo(html)
-
-def SaveInfo(html):
+def GetUrl(_input):
+    html = requests.get(url.format(_input))
+    assert html.status_code == 200 ,'http error code{}'.format(html.status_code)
     hjson = html.json()
-    for info in list:
-        try:
-            status[info]= hjson[info]
-            OutputInfo(info)
-        except:
-            pass
+    assert 'code' not in hjson,hjson.get('msg','api error,try again later')
+    OutputInfo(hjson)
 
-def OutputInfo(info):
-    if not status.get(info):
-        pass
-    elif info == 'summary' or info =='author_intro':
-        print(info,':\n',status[info])
-    elif info == 'rating':
-        print(info,':',status[info]['average'])
-    elif info =='author' or info == 'translator':
-        for i in status[info]:
-            print(info,':',i)
-    elif info =='tags':
-        print('tags:')
-        for i in status[info]:
-            print (i['name'],end=' ')
-        print(' ')
-    else:
-        print(info,':',status[info])
+def OutputInfo(hjson):
+    for i in Sorts:
+        if i in hjson.keys():
+            if len(hjson[i])==0:
+                continue
+            if i == 'tags':
+                print('标签:')
+                for n in hjson[i]:
+                    print (n['name'],end=' ')
+                print(' ')
+                continue
+            v = hjson[i][:MAX_LEN] + '...' if len(hjson[i]) > MAX_LEN else hjson[i]
+            if i == 'rating':
+                v = hjson['rating']['average']
+            if isinstance(v, list):
+                v = ','.join(hjson[i])
+            i = D.get(i)
+            print(i,':',v)
 
-
-GetNmuber()
+if __name__ == '__main__':
+    GetNmuber()
